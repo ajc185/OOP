@@ -7,159 +7,78 @@
 #include <chrono>    // std::chrono::system_clock
 
 //card constructor, takes rank and suit
-card newCard(Rank r, Suit s)
-{
-    card Card;
-    Card.rank = r;
-    Card.suit = s;
-    return Card;
-}
+Card::Card(Rank r, Suit s)
+    :value(static_cast<unsigned>(s << 4) + static_cast<unsigned>(r))
+{}
 
 //Generates vector of 52 playing cards
-void player::GenerateDeck()
+std::vector<Card> GenerateDeck()
 {
-    for(int i = 0; i < 4; i++)
-    {
-        for (int j = 0; j < 13; j++)
-        {
-            this->deck.push_back(newCard(static_cast<Rank>(j),static_cast<Suit>(i)));
-        }
-    }
-    return;
+    std::vector<Card> deck {
+        Card(Ace,Clubs),
+        Card(Two,Clubs),
+        Card(Three,Clubs),
+        Card(Four,Clubs),
+        Card(Five,Clubs),
+        Card(Six,Clubs),
+        Card(Seven,Clubs),
+        Card(Eight,Clubs),
+        Card(Nine,Clubs),
+        Card(Ten,Clubs),
+        Card(Jack,Clubs),
+        Card(Queen,Clubs),
+        Card(King,Clubs),
+
+        Card(Ace,Spades),
+        Card(Two,Spades),
+        Card(Three,Spades),
+        Card(Four,Spades),
+        Card(Five,Spades),
+        Card(Six,Spades),
+        Card(Seven,Spades),
+        Card(Eight,Spades),
+        Card(Nine,Spades),
+        Card(Ten,Spades),
+        Card(Jack,Spades),
+        Card(Queen,Spades),
+        Card(King,Spades),
+
+        Card(Ace,Hearts),
+        Card(Two,Hearts),
+        Card(Three,Hearts),
+        Card(Four,Hearts),
+        Card(Five,Hearts),
+        Card(Six,Hearts),
+        Card(Seven,Hearts),
+        Card(Eight,Hearts),
+        Card(Nine,Hearts),
+        Card(Ten,Hearts),
+        Card(Jack,Hearts),
+        Card(Queen,Hearts),
+        Card(King,Hearts),
+
+        Card(Ace,Diamonds),
+        Card(Two,Diamonds),
+        Card(Three,Diamonds),
+        Card(Four,Diamonds),
+        Card(Five,Diamonds),
+        Card(Six,Diamonds),
+        Card(Seven,Diamonds),
+        Card(Eight,Diamonds),
+        Card(Nine,Diamonds),
+        Card(Ten,Diamonds),
+        Card(Jack,Diamonds),
+        Card(Queen,Diamonds),
+        Card(King,Diamonds),
+    };
+    return deck;
 }
 
 //Shuffles the deck vector elements randomly
-void player::ShuffleDeck()
+void ShuffleDeck(std::vector<Card> &deck)
 {
     // Following code from http://www.cplusplus.com/reference/algorithm/shuffle/
     // obtain a time-based seed:
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    std::shuffle(this->deck.begin(), this->deck.end(),std::default_random_engine(seed));
-}
-
-//splits the deck in half between
-//the player calling the function
-//and the player passed to the function
-void player::SplitDeck(player& otherPlayer)
-{
-    for(int i = 0; i < 26; i++)
-    {
-        card Card = this->deck.back();
-        this->deck.pop_back();
-        otherPlayer.deck.push_back(Card);
-    }
-}
-
-//Pops card from each player's deck and adds them to WinPile
-void PlayCards(player& Player1,player& Player2,std::vector<card>& WinPile)
-{
-    WinPile.push_back(Player1.popOff());
-    WinPile.push_back(Player2.popOff());
-}
-
-//if deck is empty, set deck = pile, then clear pile
-void player::CheckDeck()
-{
-    if(this->deck.empty() && !this->pile.empty())
-    {
-        this->deck = this->pile;
-        this->pile.clear();
-        this->ShuffleDeck();
-    }
-}
-
-//Return true only if one player has run out of cards both in their deck and pile
-bool Winner(player& Player1, player& Player2)
-{
-    if((Player1.deckSize() == 0 && Player1.pileSize() == 0) || (Player2.deckSize() == 0 && Player2.pileSize() == 0))
-    {
-        return true;
-    }
-    else 
-    {
-        return false;
-    }
-}
-
-//Pops cards from each Player's deck vector, compares them and awards both cards
-//to the player with a card of higher rank. In case of tie, 3 cards (if available) 
-//are added to the WinPile by each player, and then a new card is popped from both 
-//player's decks and compared.
-void War(player& Player1, player& Player2)
-{
-    std::vector<card> WinPile; //used to temporarily store cards won by player
-    bool tie = false;
-    do
-    {
-        Player1.CheckDeck();
-        Player2.CheckDeck();
-        
-        //Player1 wins
-        if(Player1.getRank() > Player2.getRank())
-        {
-            tie = false;
-            PlayCards(Player1, Player2, WinPile);
-            //Transfer all WinPile Cards to Player1Pile:
-            while(!WinPile.empty())
-            {
-                Player1.pushToPile(WinPile.back());
-                WinPile.pop_back();
-            }
-        }
-        //Player2 wins
-        else if(Player2.getRank() > Player1.getRank())
-        {
-            tie = false;
-            PlayCards(Player1, Player2, WinPile);
-            //Transfer all WinPile Cards to Player2Pile:
-            while(!WinPile.empty())
-            {
-                Player2.pushToPile(WinPile.back());
-                WinPile.pop_back();
-            }
-        }
-        //Tie
-        else
-        {
-            tie = true;
-            //If there is more than 1 card in each players deck,
-            //Each Player adds a card to WinPile
-            if(Player1.deckSize() > 1 && Player2.deckSize() > 1)
-            {
-                PlayCards(Player1, Player2, WinPile);
-                Player1.CheckDeck();
-                Player2.CheckDeck();
-            }
-            //If there is still more than 1 card in each players deck,
-            //Each Player adds a card to WinPile
-            if(Player1.deckSize() > 1 && Player2.deckSize() > 1)
-            {
-                PlayCards(Player1, Player2, WinPile);
-                Player1.CheckDeck();
-                Player2.CheckDeck();
-            }
-            //If there is still more than 1 card in each players deck,
-            //Each Player adds a card to WinPile
-            if(Player1.deckSize() > 1 && Player2.deckSize() > 1)
-            {
-                PlayCards(Player1, Player2, WinPile);
-                Player1.CheckDeck();
-                Player2.CheckDeck();
-            }
-            //If there is not more than 1 card in each players deck,
-            //Only the player with more than 1 card adds a card to WinPile
-            else
-            {
-                if(Player1.deckSize() == 1)
-                {
-                    WinPile.push_back(Player2.popOff());
-                }
-                else if(Player2.deckSize() == 1)
-                {
-                    WinPile.push_back(Player1.popOff());
-                }
-            }
-            
-        }  
-    }while(tie);
+    std::shuffle(deck.begin(), deck.end(),std::default_random_engine(seed));
 }
