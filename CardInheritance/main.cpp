@@ -1,15 +1,15 @@
 //Andrew Cantrell
-//OOP Game of War Assignment
+//OOP
 
-#include "game.h"
 #include <iostream>
-#include <vector>
+#include "deck.h"
 
-int main()
-{
-    Game game;
-    while(game.newGame())
-    {};
+int main() {
+    std::vector<Card*> deck = GenerateDeck();
 
-    return 0;
+    for(int i = 0; i < deck.size(); i++)
+    {
+        deck[i]->print();
+        std::cout<<" ";
+    }
 }
