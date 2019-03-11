@@ -1,5 +1,4 @@
 //Andrew Cantrell
-//OOP Game of War Assignment
 
 #include "deckCompact.h"
 #include <algorithm> //shuffle
