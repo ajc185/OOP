@@ -1,8 +1,8 @@
 //Andrew Cantrell
 //OOP Game of War Assignment
 
-#ifndef DECKCOMPACT_H
-#define DECKCOMPACT_H
+#ifndef DECK_H
+#define DECK_H
 
 #include <vector>
 
