@@ -1,0 +1,5 @@
+This is the implementation for OOP Practice 6
+
+This program takes reddit JSON input via json.txt file, and creates a vector of post objects.
+Each post object contains the name of the author of the post and the title of the post.
+Once the program is finished reading the JSON input, all post authors and titles are printed.
