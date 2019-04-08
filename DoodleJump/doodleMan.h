@@ -13,11 +13,10 @@ private:
     Sprite sprite;
 
 public:
-    DoodleMan();
+    DoodleMan(){};
     void setPosition(int,int);
     Sprite getSprite(){return sprite;};
     void setSprite(Sprite);
-    void setTexture(Texture);
 };
 
 #endif

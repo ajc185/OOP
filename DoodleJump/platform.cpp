@@ -4,6 +4,8 @@
 #include "platform.h"
 using namespace sf;
 
+//Standard Platform code:
+
 void Platform::setSprite(Sprite s)
 {
     sprite = s;
@@ -12,16 +14,41 @@ void Platform::setSprite(Sprite s)
 
 void Platform::setPosition(int x,int y)
 {
+  this->x = x;
+  this->y = y;
   sprite.setPosition(x,y);
   return;
 }
 
-void Platform::setTexture(Texture t)
+bool Platform::playerLanded(int x, int y, int dy)
 {
-    sprite.setTexture(t);
-    return;
+  return ((x + 50 > this->x) && (x + 20 < this->x + 68) &&
+    (y + 70 > this->y) && (y + 70 < this->y + 14) && (dy > 0));
 }
 
-Platform::Platform()
+void Platform::afterLanding(float& dy)
 {
+  dy = -10;
+  return;
 }
+
+
+//Breaking Platform code:
+void BreakPlat::afterLanding(float& dy)
+{
+  if(!this->broken)
+  {
+    dy = -10;
+    this->broken = true;
+    return;
+  }
+}
+
+
+//Boost Platform code:
+void BoostPlat::afterLanding(float& dy)
+{
+  dy = -30;
+  return;
+}
+

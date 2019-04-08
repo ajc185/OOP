@@ -3,8 +3,11 @@
 
 #include <SFML/Graphics.hpp>
 #include <time.h>
+#include <sstream>
+#include <iostream>
 #include "doodleMan.h"
 #include "platform.h"
+
 using namespace sf;
 
 struct point
@@ -18,32 +21,57 @@ main()
     srand(time(0));
     
     RenderWindow app(VideoMode(400, 533), "Doodle Game!");
-    app.setFramerateLimit(60);
+    app.setFramerateLimit(60);//speed of game
     
     //Load images
-    Texture t1, t2, t3;
+    Texture t1, t2, t3, t4, t5, t6;
     t1.loadFromFile("images/background.png");
     t2.loadFromFile("images/platform.png");
     t3.loadFromFile("images/doodle.png");
-    Sprite sBackground(t1), sPlat(t2), sPers(t3);
+    t4.loadFromFile("images/break.png");
+    t5.loadFromFile("images/broken.png");
+    t6.loadFromFile("images/boost.png");
+    Sprite sBackground(t1), sPlat(t2), sPers(t3), sBreak(t4), sBroken(t5), sBoost(t6);
 
     //Create player, set sprite to doodle image
     DoodleMan player;
     player.setSprite(sPers);
 
-    //Create platform, set sprite to doodle image
-    Platform platform;
-    platform.setSprite(sPlat);
+    //Create platform, set sprite to platform image
+    Platform* platform = new Platform;
+    platform->setSprite(sPlat);
+
+    //Create breakable platform, set sprite to break image
+    BreakPlat* breakPlat = new BreakPlat;
+    breakPlat->setSprite(sBreak);
+    BreakPlat* brokenPlat = new BreakPlat;
+    brokenPlat->setSprite(sBroken);
+
+     //Create boost platform, set sprite to break image
+    BoostPlat* boostPlat = new BoostPlat;
+    boostPlat->setSprite(sBoost);
     
-    point plat[20];
+    //create vectors for game items
+    std::vector<Platform> stdplats;
+    std::vector<BreakPlat> breakplats;
+    std::vector<BoostPlat> boostplats;
     
-    for (int i = 0; i < 10; i++) {
-        plat[i].x = rand() % 400;
-        plat[i].y = rand() % 533;
+    //place initial platforms
+    Platform tempPlat;
+    tempPlat.x = 177;
+    tempPlat.y = 520;//rand() % 533;
+    stdplats.push_back(tempPlat);
+    for (int i = 0; i < 3; i++) {
+        tempPlat.x = rand() % 375;
+        tempPlat.y = i*120 + 50;//rand() % 533;
+        stdplats.push_back(tempPlat);
     }
+
+    BreakPlat tempBreak; //for generating breakplats later
+    BoostPlat tempBoost; //for generating boostplats later
     
-    int x = 100, y = 100, h = 200;
-    float dx = 0, dy = 0;
+    int x = 170, y = 100, h = 200; //initialize player location
+    float dx = 0, dy = 0; //initialize player movement
     
     while (app.isOpen()) {
         Event e;
@@ -68,35 +96,110 @@ main()
         
         dy += 0.2; //strength of gravity?
         y += dy; //controls speed of fall
-        if (y > 500) //if y>500, player has reached bottom of screen
-            dy = -10; //this bounces at bottom of screen
+        //if (y > 500) //if y>500, player has reached bottom of screen
+            //dy = -10; //this bounces at bottom of screen
         
         if (y < h)
+        {
             //loop to move platforms
-            for (int i = 0; i < 10; i++) { 
+            for (int i = 0; i < stdplats.size() || i < breakplats.size() || i < boostplats.size(); i++) { 
+                //move platforms along with player:
                 y = h;
-                plat[i].y = plat[i].y - dy;
-                //if platform goes offscreen, generate new one
-                if (plat[i].y > 533) {
-                    plat[i].y = 0;
-                    plat[i].x = rand() % 400;
+
+                if(i < stdplats.size())
+                {
+                    //move platforms relative to player
+                    stdplats[i].y = stdplats[i].y - dy;
+
+                    //if platform goes offscreen, generate new one
+                    if (stdplats[i].y > 533) 
+                    {
+                        stdplats[i].y = 0;
+                        stdplats[i].x = rand() % 375;
+                      
+
+                        //Randomly add in breaking platforms:
+                        if(rand()%5 == 1)
+                        {
+                            tempBreak.x = rand() % 375;
+                            tempBreak.y = -10*(rand()%5);
+                            breakplats.push_back(tempBreak);
+                        }
+                        //Randomly add in boost platforms:
+                        if(rand()%20 == 1)
+                        {
+                            tempBoost.x = rand() % 375;
+                            tempBoost.y = -10*(rand()%5);
+                            boostplats.push_back(tempBoost);
+                        }
+                    }
+                }
+                if(i < breakplats.size())
+                {
+                    //move break platforms relative to player
+                    breakplats[i].y = breakplats[i].y - dy;
+                }
+                if(i < boostplats.size())
+                {
+                    //move boost platforms relative to player
+                    boostplats[i].y = boostplats[i].y - dy;
                 }
             }
+        }
         
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < stdplats.size(); i++)
+        {
             //if player lands on platform, bounce
-            if ((x + 50 > plat[i].x) && (x + 20 < plat[i].x + 68) &&
-                (y + 70 > plat[i].y) && (y + 70 < plat[i].y + 14) && (dy > 0))
-                dy = -10;
-        
+            if (stdplats[i].playerLanded(x,y,dy))
+            {
+                stdplats[i].afterLanding(dy);
+            }
+        }
+        for (int i = 0; i < breakplats.size(); i++)
+        {
+            //if player lands on platform, bounce
+            if (breakplats[i].playerLanded(x,y,dy))
+            {
+                breakplats[i].afterLanding(dy);
+            }
+        }
+        for (int i = 0; i < boostplats.size(); i++)
+        {
+            //if player lands on platform, bounce
+            if (boostplats[i].playerLanded(x,y,dy))
+            {
+                boostplats[i].afterLanding(dy);
+            }
+        }
+
         player.setPosition(x, y);
         
         //block to draw all entities
         app.draw(sBackground);
         app.draw(player.getSprite());
-        for (int i = 0; i < 10; i++) {
-            platform.setPosition(plat[i].x, plat[i].y);
-            app.draw(platform.getSprite());
+        for (int i = 0; i < stdplats.size(); i++) 
+        {
+            sPlat.setPosition(stdplats[i].x, stdplats[i].y);
+            app.draw(sPlat);
+        }
+        for (int i = 0; i < breakplats.size(); i++) 
+        {
+            if(!breakplats[i].isBroken())
+            {
+                sBreak.setPosition(breakplats[i].x, breakplats[i].y);
+                app.draw(sBreak);
+            }
+            else
+            {
+                breakplats[i].y += 10;
+                sBroken.setPosition(breakplats[i].x, breakplats[i].y);
+                app.draw(sBroken);
+            } 
+        }
+        for (int i = 0; i < boostplats.size(); i++) 
+        {
+            sBoost.setPosition(boostplats[i].x, boostplats[i].y);
+            app.draw(sBoost);
         }
         
         app.display();

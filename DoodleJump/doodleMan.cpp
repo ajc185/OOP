@@ -15,13 +15,3 @@ void DoodleMan::setPosition(int x,int y)
   sprite.setPosition(x,y);
   return;
 }
-
-void DoodleMan::setTexture(Texture t)
-{
-    sprite.setTexture(t);
-    return;
-}
-
-DoodleMan::DoodleMan()
-{
-}
