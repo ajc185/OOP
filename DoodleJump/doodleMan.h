@@ -14,6 +14,9 @@ private:
 
 public:
     DoodleMan(){};
+    DoodleMan(sf::Sprite s)
+    : sprite(s)
+    {};
     void setPosition(int,int);
     Sprite getSprite(){return sprite;};
     void setSprite(Sprite);
